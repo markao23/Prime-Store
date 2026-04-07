@@ -28,8 +28,8 @@ class MeuBot(commands.Bot):
             except Exception as e:
                 print(f"[-] Erro ao carregar a extensão {module_name}: {e}")
                 traceback.print_exc()
-                
-        await self.tree.copy_global_to(guild=meu_servidor)
+
+        self.tree.copy_global_to(guild=meu_servidor)
         await self.tree.sync(guild=meu_servidor)
         print("comandos de barra sincronizados com sucesso")
 
