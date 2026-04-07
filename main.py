@@ -29,6 +29,8 @@ class MeuBot(commands.Bot):
                 print(f"[-] Erro ao carregar a extensão {module_name}: {e}")
                 traceback.print_exc()
 
+        self.tree.clear_commands(guild=None)
+        await self.tree.sync(guild=None)
         self.tree.copy_global_to(guild=meu_servidor)
         await self.tree.sync(guild=meu_servidor)
         print("comandos de barra sincronizados com sucesso")
