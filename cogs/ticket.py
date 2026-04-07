@@ -46,7 +46,7 @@ async def setup(ctx):
             "❯ Assuntos financeiros, compras e pagamentos\n"
             "❯ Reportar bugs, erros ou fazer denúncias\n\n"
             "Clique no botão abaixo para abrir um canal de atendimento privado com a gente.\n"
-            "🕒 Necessita ter paciencia que nossa equipe responde em breve"
+            "🕒 Necessita ter paciencia que nossa equipe responde em brev"
         ),
         color=0x2b2d31 
     )
