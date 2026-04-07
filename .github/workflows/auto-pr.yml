@@ -1,0 +1,38 @@
+name: Criar PR Automaticamente
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+
+jobs:
+  abrir-pr:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar GitHub CLI
+        run: sudo apt-get install gh -y
+
+      - name: Criar o Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_EXISTE=$(gh pr list --head ${{ github.ref_name }} --state open --json number --jq 'length')
+
+          if [ "$PR_EXISTE" -eq "0" ]; then
+            echo "Nenhum PR encontrado. Criando um novo..."
+            gh pr create \
+              --base main \
+              --head ${{ github.ref_name }} \
+              --title "Automático: Novo código de ${{ github.actor }}" \
+              --body "PR criado automaticamente após push."
+          else
+            echo "Já existe um PR aberto para esta branch."
+          fi
