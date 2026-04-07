@@ -20,7 +20,7 @@ class Econimia(commands.Cog):
         with open("database/dados.json", "w") as f:
             json.dump(dados, f, indent=4)
     
-    @app_command.command(name="saldo", description="veja o seu saldo na conta do bot")
+    @app_commands.command(name="saldo", description="veja o seu saldo na conta do bot")
     async def saldo(self, ctx):
         dados = self.carregar()
         user = str(ctx.author.id)
@@ -31,7 +31,7 @@ class Econimia(commands.Cog):
 
         await ctx.send(f"{ctx.author.mention}, seu saldo é de {dados[user]} moedas.")
     
-    @app_command.command(name="add", description="Adiciona moedas a um usuário (Apenas Admins)")
+    @app_commands.command(name="add", description="Adiciona moedas a um usuário (Apenas Admins)")
     async def add(self, ctx, member: discord.member, valor: int):
        if ctx.author.guid_permissions.administrator:
             dados = self.carregar()
