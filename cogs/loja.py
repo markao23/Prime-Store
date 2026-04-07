@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 class LojaView(discord.ui.View):
@@ -28,19 +29,19 @@ class LojaView(discord.ui.View):
 
 
 class Loja(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command()
-    async def loja(self, ctx):
+    # comando de barra
+    @app_commands.command(name="loja", description="Mostra a loja de moedas")
+    async def loja(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="🛒 Loja de Moedas",
             description="Escolha um pacote abaixo:",
             color=discord.Color.green()
         )
+        await interaction.response.send_message(embed=embed, view=LojaView(), ephemeral=False)
 
-        await ctx.send(embed=embed, view=LojaView())
 
-
-async def setup(bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(Loja(bot))
