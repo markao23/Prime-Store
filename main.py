@@ -11,7 +11,7 @@ intents.message_content = True
 class MeuBot(commands.Bot):
     def __init__(self):
         # Aqui definimos o prefixo que o bot vai ouvir. Neste caso, o "!"
-        super().__init__(command_prefix="!", intents=intents)
+        super().__init__(command_prefix="!", intents=intents, help_command=None)
 
     async def setup_hook(self):
         cogs_dir = Path("cogs")

@@ -2,7 +2,8 @@ import discord
 from discord.ext import commands
 
 
-class HelpCog(commands.Cog):
+# DICA: Use name="Nome" na classe para definir como a categoria vai aparecer no Embed
+class HelpCog(commands.Cog, name="⚙️ Ajuda"):
     def __init__(self, bot):
         self.bot = bot
 
@@ -14,34 +15,37 @@ class HelpCog(commands.Cog):
         embed = discord.Embed(
             title="🤖 Painel de Comandos",
             description="Aqui estão todos os meus comandos! Lembre-se de usar `!` antes de cada um.",
-            color=0x5865F2,  # Cor Blurple (azul/roxo padrão do Discord). Você pode usar 0xFF0000 para vermelho, etc.
+            color=0x5865F2,
         )
 
-        # 2. Adicionando a foto de perfil do bot no canto superior direito
         if self.bot.user.avatar:
             embed.set_thumbnail(url=self.bot.user.avatar.url)
 
-        # 3. Adicionando os campos (Categorias)
-        # inline=False faz com que cada categoria fique em uma linha separada
-        embed.add_field(
-            name="🛠️ **Utilidade**",
-            value="`!help` - Mostra esta mensagem.\n`!ping` - Mostra a latência do bot.",
-            inline=False,
-        )
+        # 2. SISTEMA DINÂMICO DE LEITURA DOS COGS
+        # Passa por todos os Cogs que você carregou no main.py
+        for cog_name, cog in self.bot.cogs.items():
 
-        embed.add_field(
-            name="🎉 **Diversão**",
-            value="`!dado` - Rola um dado de 6 lados.\n`!avatar [@usuario]` - Mostra a foto de alguém.",
-            inline=False,
-        )
+            # Pega todos os comandos dentro deste Cog
+            cog_commands = cog.get_commands()
 
-        embed.add_field(
-            name="🛡️ **Moderação**",
-            value="`!limpar [numero]` - Apaga mensagens do chat.\n`!ban [@usuario]` - Bane um membro.",
-            inline=False,
-        )
+            # Filtra os comandos para não mostrar os que estão escondidos (hidden=True)
+            visible_commands = [cmd for cmd in cog_commands if not cmd.hidden]
 
-        # 4. Rodapé com quem pediu e a hora
+            # Se o Cog não tiver comandos visíveis, o bot ignora e pula pro próximo
+            if not visible_commands:
+                continue
+
+            # Monta o texto com a lista de comandos deste Cog
+            command_list = ""
+            for cmd in visible_commands:
+                # Se o comando não tiver o parâmetro 'description', ele usa um texto padrão
+                desc = cmd.description or "Sem descrição configurada."
+                command_list += f"`!{cmd.name}` - {desc}\n"
+
+            # Adiciona a Categoria e a lista de comandos no Embed
+            embed.add_field(name=f"**{cog_name}**", value=command_list, inline=False)
+
+        # 3. Rodapé com quem pediu
         user_avatar = (
             ctx.author.avatar.url
             if ctx.author.avatar
@@ -49,10 +53,8 @@ class HelpCog(commands.Cog):
         )
         embed.set_footer(text=f"Solicitado por {ctx.author.name}", icon_url=user_avatar)
 
-        # Envia o embed no chat onde o comando foi digitado
         await ctx.send(embed=embed)
 
 
-# Função obrigatória para carregar o Cog no discord.py v2.0+
 async def setup(bot):
     await bot.add_cog(HelpCog(bot))
