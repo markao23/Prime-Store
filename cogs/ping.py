@@ -10,17 +10,17 @@ class PingCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # Isso cria o Slash Command (/ping) com a v2 do Discord
+    # 1. Mudamos para @commands.command (formato de prefixo)
     @commands.command(name="ping")
-    async def ping(self, interaction: discord.Interaction):
-        # 1. Loga no seu terminal que alguém usou o comando
-        log_ping_start(f"Discord API (Usuário: {interaction.user})")
+    async def ping(self, ctx):  # 2. Usando ctx em vez de interaction
+        # 3. interaction.user vira ctx.author
+        log_ping_start(f"Discord API (Usuário: {ctx.author})")
 
         try:
-            # 2. Pega a latência do WebSocket (Comunicação contínua do Bot)
+            # Pega a latência do WebSocket (Comunicação contínua do Bot)
             ws_latency = round(self.bot.latency * 1000)
 
-            # 3. Marca o tempo antes de responder para calcular a latência da API
+            # Marca o tempo antes de responder para calcular a latência da API
             start_time = time.time()
 
             # Cria um Embed bonito pro usuário ver no Discord
@@ -32,20 +32,21 @@ class PingCog(commands.Cog):
                 name="⚙️ Latência da API", value="`Calculando...`", inline=True
             )
 
-            # 4. Responde o usuário (isso bate na API do Discord)
-            await interaction.response.send_message(embed=embed)
+            # 4. Usamos ctx.send e guardamos a mensagem na variável 'msg'
+            msg = await ctx.send(embed=embed)
 
-            # 5. Calcula quanto tempo demorou pra mensagem ir e voltar
+            # Calcula quanto tempo demorou pra mensagem ir e voltar
             end_time = time.time()
             api_latency = round((end_time - start_time) * 1000)
 
-            # 6. Edita a mensagem com a latência real da API
+            # Edita a mensagem com a latência real da API
             embed.set_field_at(
                 1, name="⚙️ Latência da API", value=f"`{api_latency}ms`", inline=True
             )
-            await interaction.edit_original_response(embed=embed)
+            # 5. Editamos a mensagem que guardamos ali em cima
+            await msg.edit(embed=embed)
 
-            # 7. Loga o sucesso e os tempos no seu terminal usando o Rich!
+            # Loga o sucesso e os tempos no seu terminal usando o Rich!
             terminal_msg = (
                 f"Latência WS: {ws_latency}ms | Latência API: {api_latency}ms"
             )
@@ -55,11 +56,8 @@ class PingCog(commands.Cog):
             # Se der ruim (ex: Discord caiu), loga o erro em vermelho
             log_ping_error("Discord API", str(e))
 
-            # Tenta avisar o usuário, mas só ele vê a mensagem (ephemeral)
-            if not interaction.response.is_done():
-                await interaction.response.send_message(
-                    "❌ Ocorreu um erro ao calcular o ping.", ephemeral=True
-                )
+            # 6. Mensagem de erro simples usando ctx
+            await ctx.send("❌ Ocorreu um erro ao calcular o ping.")
 
 
 # Função obrigatória para o Discord carregar este arquivo
