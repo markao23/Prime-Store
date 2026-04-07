@@ -12,9 +12,7 @@ class PingCog(commands.Cog):
         self.bot = bot
 
     # Isso cria o Slash Command (/ping) com a v2 do Discord
-    @app_commands.command(
-        name="ping", description="Mostra a latência do bot e da API do Discord."
-    )
+    @app_commands.command()
     async def ping(self, interaction: discord.Interaction):
         # 1. Loga no seu terminal que alguém usou o comando
         log_ping_start(f"Discord API (Usuário: {interaction.user})")
