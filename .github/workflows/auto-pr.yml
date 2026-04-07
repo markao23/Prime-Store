@@ -22,7 +22,7 @@ jobs:
 
       - name: Criar o Pull Request
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.MEU_TOKEN_PR }}
         run: |
           PR_EXISTE=$(gh pr list --head ${{ github.ref_name }} --state open --json number --jq 'length')
 
