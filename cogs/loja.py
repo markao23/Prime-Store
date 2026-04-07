@@ -36,7 +36,7 @@ class Loja(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(name="loja")
     async def loja(self, ctx):
         embed = discord.Embed(
             title="🛒 Loja de Moedas",

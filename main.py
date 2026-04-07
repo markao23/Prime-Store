@@ -1,26 +1,26 @@
 import config
 from discord.ext import commands
-import discord 
+import discord
 import traceback
 from pathlib import Path
-
 
 intents = discord.Intents.default()
 intents.message_content = True
 
+
 class MeuBot(commands.Bot):
     def __init__(self):
+        # Aqui definimos o prefixo que o bot vai ouvir. Neste caso, o "!"
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
         cogs_dir = Path("cogs")
 
         for file in cogs_dir.rglob("*.py"):
-            if file.name == '__init__.py':
+            if file.name == "__init__.py":
                 continue
 
-            module_name = ".".join(file.with_suffix('').parts)
-            meu_servidor = discord.Object(id=1230623705336381490)
+            module_name = ".".join(file.with_suffix("").parts)
 
             try:
                 await self.load_extension(module_name)
@@ -29,14 +29,12 @@ class MeuBot(commands.Bot):
                 print(f"[-] Erro ao carregar a extensão {module_name}: {e}")
                 traceback.print_exc()
 
-        self.tree.clear_commands(guild=None)
-        await self.tree.sync(guild=None)
-        self.tree.copy_global_to(guild=meu_servidor)
-        await self.tree.sync(guild=meu_servidor)
-        print("comandos de barra sincronizados com sucesso")
+        # Removemos toda a parte de self.tree.sync(). Não é mais necessário!
+        print("Cogs carregados. Pronto para receber comandos de prefixo!")
 
     async def on_ready(self):
-        print(f'Bot online e logado como {self.user}')
+        print(f"Bot online e logado como {self.user}")
+
 
 bot = MeuBot()
 

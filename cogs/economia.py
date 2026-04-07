@@ -9,11 +9,9 @@ class Economia(commands.Cog):
         self.bot = bot
 
     def carregar(self):
-        # 1. Garante que a pasta existe
+        # Garante que a pasta e o arquivo existam
         if not os.path.exists("database"):
             os.makedirs("database")
-
-        # 2. Verifica se o arquivo correto existe
         if not os.path.exists("database/dados.json"):
             with open("database/dados.json", "w") as f:
                 json.dump({}, f)
@@ -25,45 +23,37 @@ class Economia(commands.Cog):
         with open("database/dados.json", "w") as f:
             json.dump(dados, f, indent=4)
 
-    # 3. Comandos de barra usam interaction, não ctx
-    @commands.command()
-    async def saldo(self, interaction: discord.Interaction):
+    # 1. Mudamos para @commands.command()
+    @commands.command(name="saldo")
+    # 2. Voltamos a usar ctx em vez de interaction
+    async def saldo(self, ctx):
         dados = self.carregar()
-        user_id = str(interaction.user.id)
+        user_id = str(ctx.author.id)
 
         if user_id not in dados:
             dados[user_id] = {"saldo": 0}
             self.salvar(dados)
 
-        # 4. Acessando o valor 'saldo' dentro do dicionário e respondendo corretamente
-        await interaction.response.send_message(
-            f"{interaction.user.mention}, seu saldo é de {dados[user_id]['saldo']} moedas."
+        # 3. Voltamos a usar ctx.send para enviar a mensagem
+        await ctx.send(
+            f"{ctx.author.mention}, seu saldo é de {dados[user_id]['saldo']} moedas."
         )
 
-    # 5. O erro principal estava aqui: discord.Member (com M maiúsculo)
-    @commands.command()
-    async def add(
-        self, interaction: discord.Interaction, membro: discord.Member, valor: int
-    ):
-        # 6. guild_permissions (com L)
-        if interaction.user.guild_permissions.administrator:
+    @commands.command(name="add")
+    async def add(self, ctx, membro: discord.Member, valor: int):
+        if ctx.author.guild_permissions.administrator:
             dados = self.carregar()
             user_id = str(membro.id)
 
             if user_id not in dados:
                 dados[user_id] = {"saldo": 0}
 
-            # 7. Somando no lugar certo dentro do dicionário
             dados[user_id]["saldo"] += valor
             self.salvar(dados)
 
-            await interaction.response.send_message(
-                f"{valor} moedas adicionadas ao saldo de {membro.mention}."
-            )
+            await ctx.send(f"{valor} moedas adicionadas ao saldo de {membro.mention}.")
         else:
-            await interaction.response.send_message(
-                "Você não tem permissão para usar este comando.", ephemeral=True
-            )
+            await ctx.send("Você não tem permissão para usar este comando.")
 
 
 async def setup(bot):
