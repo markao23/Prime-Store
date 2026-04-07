@@ -17,17 +17,14 @@ jobs:
       - name: Baixar o código
         uses: actions/checkout@v4
 
-      # O GitHub Actions já vem com o 'gh' instalado, não precisa rodar o apt-get
       - name: Criar o Pull Request
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Use o token padrão do GitHub
+          GH_TOKEN: ${{ github.token }} # <-- Mudança aqui! Usando o contexto 'github.token'
         run: |
-          # Pegamos apenas o nome da branch atual
           BRANCH_ATUAL="${{ github.ref_name }}"
           
           echo "Verificando PR para a branch: $BRANCH_ATUAL"
 
-          # Verificamos se já existe um PR aberto para essa branch
           PR_EXISTE=$(gh pr list --head "$BRANCH_ATUAL" --state open --json number --jq 'length')
 
           if [ "$PR_EXISTE" -eq 0 ]; then
