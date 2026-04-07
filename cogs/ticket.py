@@ -1,56 +1,90 @@
 import discord
 from discord.ext import commands
 
-# --- CLASSE DA INTERAÇÃO (BOTÃO) ---
+
+# 1. A View (Botões) permanece fora da classe ou dentro, mas sem depender de 'bot' global
 class TicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label="Abrir Ticket", 
-        style=discord.ButtonStyle.gray, 
-        emoji="☁️", 
-        custom_id="persistent_view:tkt_nexus" # ID único para salvar no banco do Discord
+        label="Abrir Ticket",
+        style=discord.ButtonStyle.primary,
+        emoji="🎫",
+        custom_id="persistent_view:ticket",
     )
-    async def ticket_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Aqui você insere a lógica de criação do canal de ticket
-        await interaction.response.send_message("Seu ticket está sendo processado...", ephemeral=True)
+    async def create_ticket(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        guild = interaction.guild
+        user = interaction.user
 
-# --- CONFIGURAÇÃO DO BOT ---
-class MyBot(commands.Bot):
-    def __init__(self):
-        intents = discord.Intents.default()
-        intents.message_content = True # Necessário para ler o prefixo !
-        super().__init__(command_prefix="!", intents=intents)
+        channel_name = f"ticket-{user.name}".lower()
+        existing_channel = discord.utils.get(guild.channels, name=channel_name)
 
-    async def setup_hook(self):
-        # Isso faz com que o botão funcione mesmo se o bot cair e voltar
-        self.add_view(TicketView())
+        if existing_channel:
+            return await interaction.response.send_message(
+                f"Você já tem um ticket aberto em {existing_channel.mention}!",
+                ephemeral=True,
+            )
 
-bot = MyBot()
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            user: discord.PermissionOverwrite(
+                read_messages=True, send_messages=True, attach_files=True
+            ),
+            guild.me: discord.PermissionOverwrite(
+                read_messages=True, send_messages=True
+            ),
+        }
 
-@bot.event
-async def on_ready():
-    print(f'Bot logado como {bot.user.name}')
+        # Tenta encontrar a categoria 'TICKETS', se não existir, cria na raiz
+        category = discord.utils.get(guild.categories, name="TICKETS")
+        channel = await guild.create_text_channel(
+            name=channel_name, overwrites=overwrites, category=category
+        )
 
-# --- COMANDO PARA ENVIAR O EMBED ---
-@bot.command()
-async def setup(ctx):
-    embed = discord.Embed(
-        title="🔗 CENTRAL DE ATENDIMENTO",
-        description=(
-            "Precisa de ajuda, encontrou algum bug ou tem dúvidas sobre os nossos serviços? "
-            "Nosso canal de atendimento, estamos prontos para te ajudar! seja para revolver problemas ou esclarecer duvidas\n\n"
-            "**O que resolvemos por aqui:**\n"
-            "❯ Suporte técnico e dúvidas sobre os sistemas\n"
-            "❯ Assuntos financeiros, compras e pagamentos\n"
-            "❯ Reportar bugs, erros ou fazer denúncias\n\n"
-            "Clique no botão abaixo para abrir um canal de atendimento privado com a gente.\n"
-            "🕒 Necessita ter paciencia que nossa equipe responde em brev"
-        ),
-        color=0x2b2d31 
-    )
-    
-    embed.set_footer(text="VENDAS DE BOTS")
-    
-    await ctx.send(embed=embed, view=TicketView())
+        await interaction.response.send_message(
+            f"Seu ticket foi criado: {channel.mention}", ephemeral=True
+        )
+
+        embed_welcome = discord.Embed(
+            title="🎫 Suporte Solicitado",
+            description=f"Olá {user.mention}, explique seu problema e aguarde a equipe.",
+            color=discord.Color.blue(),
+        )
+        await channel.send(embed=embed_welcome)
+
+
+# 2. A Classe da Cog (Onde o erro estava acontecendo)
+class Ticket(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    # EM COGS, USAMOS @commands.command() e adicionamos 'self' nos argumentos
+    @commands.command(name="ticket")
+    @commands.has_permissions(administrator=True)
+    async def ticket(self, ctx):
+        embed = discord.Embed(
+            title="✨ Central de Atendimento",
+            description=(
+                "Precisa de ajuda ou quer realizar uma denúncia?\n\n"
+                "**Como funciona?**\n"
+                "1️⃣ Clique no botão abaixo.\n"
+                "2️⃣ Um canal privado será criado para você.\n"
+                "3️⃣ Descreva sua dúvida e aguarde nossa equipe."
+            ),
+            color=0x5865F2,
+        )
+        # 'self.bot' é usado aqui para pegar o avatar do bot
+        embed.set_footer(
+            text=f"Sistema de Tickets - {ctx.guild.name}",
+            icon_url=self.bot.user.avatar.url if self.bot.user.avatar else None,
+        )
+
+        await ctx.send(embed=embed, view=TicketView())
+
+
+# 3. Função obrigatória para carregar a Cog
+async def setup(bot):
+    await bot.add_cog(Ticket(bot))
