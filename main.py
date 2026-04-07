@@ -20,6 +20,7 @@ class MeuBot(commands.Bot):
                 continue
 
             module_name = ".".join(file.with_suffix('').parts)
+            meu_servidor = discord.Object(id=1230623705336381490)
 
             try:
                 await self.load_extension(module_name)
@@ -28,7 +29,8 @@ class MeuBot(commands.Bot):
                 print(f"[-] Erro ao carregar a extensão {module_name}: {e}")
                 traceback.print_exc()
                 
-        await self.tree.sync()
+        await self.tree.copy_global_to(guild=meu_servidor)
+        await self.tree.sync(guild=meu_servidor)
         print("comandos de barra sincronizados com sucesso")
 
     async def on_ready(self):
