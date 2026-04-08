@@ -5,7 +5,7 @@ import os
 
 ARQUIVO_PRODUTOS = "produtos.json"
 
-class Estoque(commands.Cog):
+class EstoqueBaixar(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -41,4 +41,4 @@ class Estoque(commands.Cog):
 
 # setup
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Estoque(bot))
+    await bot.add_cog(EstoqueBaixar(bot))
