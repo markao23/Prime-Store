@@ -3,7 +3,7 @@ name: Criar PR Automaticamente
 on:
   push:
     branches:
-      - 'feature/**'
+      - main
 
 jobs:
   abrir-pr:
