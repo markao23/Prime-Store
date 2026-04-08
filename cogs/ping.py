@@ -61,5 +61,5 @@ class PingCog(commands.Cog):
 
 
 # Função obrigatória para o Discord carregar este arquivo
-async def setup(bot):
+async def setup(bo):
     await bot.add_cog(PingCog(bot))
