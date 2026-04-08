@@ -1,6 +1,7 @@
-import config
+from config import DATABASE_URL, DISCORD_TOKEN
 from discord.ext import commands
 import discord
+import asyncpg
 import traceback
 from pathlib import Path
 
@@ -12,6 +13,7 @@ class MeuBot(commands.Bot):
     def __init__(self):
         # Aqui definimos o prefixo que o bot vai ouvir. Neste caso, o "!"
         super().__init__(command_prefix="ps!", intents=intents, help_command=None)
+        self.db = None
 
     async def setup_hook(self):
         cogs_dir = Path("cogs")
@@ -31,6 +33,15 @@ class MeuBot(commands.Bot):
 
         # Removemos toda a parte de self.tree.sync(). Não é mais necessário!
         print("Cogs carregados. Pronto para receber comandos de prefixo!")
+
+        print("Iniciando a conexão do banco")
+        self.db = await asyncpg.create_pool(DATABASE_URL)
+        print("Conectado ao banco com sucesso!")
+        
+    async def close(self):
+        if self.db:
+            await self.db.close()
+        await super().close()
 
     async def on_ready(self):
         print(f"Bot online e logado como {self.user}")
