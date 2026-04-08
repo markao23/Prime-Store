@@ -4,7 +4,7 @@ import json
 
 ARQUIVO_PRODUTOS = "produtos.json"
 
-class Produto(commands.Cog):
+class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -33,3 +33,6 @@ class Produto(commands.Cog):
         embed.add_field(name="💰 Preço", value=f"R${produto['preco']}", inline=False)
 
         await ctx.send(embed=embed)
+
+async def setup(bot):
+    await bot.add_cog(Info(bot))
