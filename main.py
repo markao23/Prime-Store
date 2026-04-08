@@ -11,7 +11,7 @@ intents.message_content = True
 class MeuBot(commands.Bot):
     def __init__(self):
         # Aqui definimos o prefixo que o bot vai ouvir. Neste caso, o "!"
-        super().__init__(command_prefix="!", intents=intents, help_command=None)
+        super().__init__(command_prefix="ps!", intents=intents, help_command=None)
 
     async def setup_hook(self):
         cogs_dir = Path("cogs")
@@ -34,6 +34,8 @@ class MeuBot(commands.Bot):
 
     async def on_ready(self):
         print(f"Bot online e logado como {self.user}")
+        await self.change_presence(activity=discord.Game(name="!help"))
+
 
 
 bot = MeuBot()
