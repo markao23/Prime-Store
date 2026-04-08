@@ -29,7 +29,7 @@ jobs:
           if [ "$PR_EXISTE" -eq "0" ]; then
             echo "Nenhum PR encontrado. Criando um novo..."
             gh pr create \
-              --base main \
+              --base producao \
               --head ${{ github.ref_name }} \
               --title "Automático: Novo código de ${{ github.actor }}" \
               --body "PR criado automaticamente após push."
