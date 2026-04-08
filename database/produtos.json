@@ -1,64 +1,14 @@
 {
-  "loja": "Prime Store",
-  "versao_catalogo": "1.0.0",
   "produtos": [
     {
-      "id": "PRIME-MOD-001",
-      "nome": "Prime Guard - Moderação Avançada",
-      "categoria": "Segurança & Moderação",
-      "preco": {
-        "valor": 50.0,
-        "moeda": "BRL"
-      },
-      "status": "Pronta Entrega",
-      "descricao_curta": "Sistema completo de moderação e automação de segurança para proteger seu servidor 24/7.",
-      "tecnologias": ["Node.js", "Discord.js v14", "MongoDB"],
-      "funcionalidades_principais": [
-        "Sistema Anti-Raid e Anti-Spam configurável",
-        "Auto-moderation com sistema de advertências (Warns)",
-        "Logs detalhadas (mensagens apagadas, entradas, saídas, bans)",
-        "Sistema de Tickets em botões/menus suspensos",
-        "Filtro de palavras proibidas (Badwords)"
-      ],
-      "especificacoes_tecnicas": {
-        "banco_de_dados": "MongoDB",
-        "painel_web": false,
-        "suporte_slash_commands": true
-      },
-      "pos_venda": {
-        "dias_de_suporte": 15,
-        "atualizacoes_gratuitas": true,
-        "prazo_entrega_dias": 1
-      }
+      "nome": "Bot Moderador",
+      "preco": 50.0,
+      "descricao": "Bot com comandos de moderação e auto-moderation"
     },
     {
-      "id": "PRIME-MUS-002",
-      "nome": "Prime Beats - Bot de Música Premium",
-      "categoria": "Entretenimento",
-      "preco": {
-        "valor": 70.0,
-        "moeda": "BRL"
-      },
-      "status": "Sob Encomenda",
-      "descricao_curta": "Bot de música de alta fidelidade com suporte a múltiplas plataformas e filtros de áudio.",
-      "tecnologias": ["Python", "Pycord", "Lavalink", "SQLite"],
-      "funcionalidades_principais": [
-        "Reprodução via Spotify, YouTube, SoundCloud e Apple Music",
-        "Filtros de áudio nativos (Bassboost, Nightcore, Vaporwave)",
-        "Criação de playlists personalizadas por usuário",
-        "Controle por botões no chat (Play/Pause, Skip, Stop)",
-        "Sistema de letras de música integrado"
-      ],
-      "especificacoes_tecnicas": {
-        "banco_de_dados": "SQLite",
-        "painel_web": false,
-        "suporte_slash_commands": true
-      },
-      "pos_venda": {
-        "dias_de_suporte": 30,
-        "atualizacoes_gratuitas": false,
-        "prazo_entrega_dias": 3
-      }
+      "nome": "Bot de Música",
+      "preco": 70.0,
+      "descricao": "Bot que toca músicas de YouTube, Spotify e SoundCloua"
     }
   ]
 }

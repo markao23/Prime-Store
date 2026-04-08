@@ -1,53 +1,64 @@
 import discord
 from discord.ext import commands
-from datetime import datetime
+import json
 
+ARQUIVO_PRODUTOS = "produtos.json"
 
 class Produto(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="produto")
-    @commands.has_permissions(administrator=True)  # Apenas admins podem criar produtos
-    async def produto(self, ctx, nome: str, preco: str, quantidade: int):
+    @commands.group(name="produto", invoke_without_command=True)
+    async def produto(self, ctx: commands.Context):
+        await ctx.send("Use um subcomando: `editar`, `listar`")
 
-        # 1. Criação da estrutura base do Embed
-        embed = discord.Embed(
-            title=f"🛒 {nome}",
-            description="Temos um novo produto disponível! Confira os detalhes abaixo:",
-            color=0x2ECC71,  # Um verde profissional e amigável
-            timestamp=datetime.now(),  # Adiciona a hora atual no rodapé
+    # Subcomando: !produto editar <nome> <novo_nome> <novo_preco> <nova_descricao>
+    @produto.command(name="editar")
+    async def produto_editar(self, ctx: commands.Context, nome: str, novo_nome: str, novo_preco: float, *, nova_descricao: str):
+        """
+        Edita um produto existente no JSON
+        Exemplo: 
+        !produto edita "Bot Moderador" "Bot Admin" 55 "Bot atualizado com mais comandos"
+        """
+        # Carrega os produtos
+        with open(ARQUIVO_PRODUTOS, "r", encoding="utf-8") as f:
+            dados = json.load(f)
+
+        # Procura o produto
+        produto = next((p for p in dados["produtos"] if p["nome"].lower() == nome.lower()), None)
+        if not produto:
+            await ctx.send(f"❌ Produto **{nome}** não encontrado.")
+            return
+
+        # Atualiza os dados
+        produto["nome"] = novo_nome
+        produto["preco"] = novo_preco
+        produto["descricao"] = nova_descricao
+
+        # Salva de volta no JSON
+        with open(ARQUIVO_PRODUTOS, "w", encoding="utf-8") as f:
+            json.dump(dados, f, indent=4, ensure_ascii=False)
+
+        await ctx.send(
+            f"✅ Produto atualizado!\n"
+            f"Nome: {novo_nome}\n💰 Preço: R${novo_preco}\n📝 Descrição: {nova_descricao}"
         )
 
-        # 2. Adicionando os campos separados (inline=True deixa eles lado a lado)
-        embed.add_field(name="💰 Valor", value=f"**R$ {preco}**", inline=True)
-        embed.add_field(
-            name="📦 Estoque", value=f"**{quantidade}** unidades", inline=True
-        )
+    # Comando extra para listar produtos
+    @produto.command(name="listar")
+    async def produto_listar(self, ctx: commands.Context):
+        with open(ARQUIVO_PRODUTOS, "r", encoding="utf-8") as f:
+            dados = json.load(f)
 
-        # Opcional: Uma linha extra para dar mais destaque
-        embed.add_field(
-            name="Como comprar?",
-            value="Abra um ticket ou chame a equipe na DM!",
-            inline=False,
-        )
+        if not dados["produtos"]:
+            await ctx.send("Não há produtos cadastrados.")
+            return
 
-        # 3. Rodapé com a foto de quem anunciou
-        embed.set_footer(
-            text=f"Anunciado por {ctx.author.display_name}",
-            icon_url=ctx.author.display_avatar.url,
-        )
+        embed = discord.Embed(title="📦 Produtos", color=discord.Color.green())
+        for p in dados["produtos"]:
+            embed.add_field(name=p["nome"], value=f"💰 R${p['preco']} | 📝 {p['descricao']}", inline=False)
 
-        # Envia o embed no canal
         await ctx.send(embed=embed)
 
-        # Apaga a mensagem original do "!produto" para deixar o chat limpo
-        try:
-            await ctx.message.delete()
-        except discord.Forbidden:
-            pass  # Ignora caso o bot não tenha permissão de apagar mensagens
-
-
-# Função obrigatória para carregar a Cog
-async def setup(bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(Produto(bot))
