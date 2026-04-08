@@ -1,4 +1,5 @@
 from config import DATABASE_URL, DISCORD_TOKEN
+import config
 from discord.ext import commands
 import discord
 import asyncpg
@@ -37,7 +38,7 @@ class MeuBot(commands.Bot):
         print("Iniciando a conexão do banco")
         self.db = await asyncpg.create_pool(DATABASE_URL)
         print("Conectado ao banco com sucesso!")
-        
+
     async def close(self):
         if self.db:
             await self.db.close()
@@ -45,7 +46,7 @@ class MeuBot(commands.Bot):
 
     async def on_ready(self):
         print(f"Bot online e logado como {self.user}")
-        await self.change_presence(activity=discord.Game(name="!help"))
+        await self.change_presence(activity=discord.Game(name="ps!help"))
 
 
 
