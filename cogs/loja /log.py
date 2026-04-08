@@ -3,7 +3,7 @@ from discord.ext import commands
 import json
 import os
 
-ARQUIVO_CONFIG = "config.json"
+ARQUIVO_CONFIG = "database/config.json"
 
 class Config(commands.Cog):
     def __init__(self, bot):

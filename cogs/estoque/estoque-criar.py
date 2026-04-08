@@ -1,70 +1,70 @@
 import discord
 from discord.ext import commands
-import json
-import os
-
 
 class Estoque(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.arquivo_estoque = "database/produtos.json"
-
-    def carregar_estoque(self):
-        # Cria a pasta e o arquivo JSON de estoque se não existirem
-        if not os.path.exists("database"):
-            os.makedirs("database")
-        if not os.path.exists(self.arquivo_estoque):
-            with open(self.arquivo_estoque, "w", encoding="utf-8") as f:
-                json.dump({}, f)
-
-        with open(self.arquivo_estoque, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    def salvar_estoque(self, dados):
-        with open(self.arquivo_estoque, "w", encoding="utf-8") as f:
-            json.dump(dados, f, indent=4)
+        # Não precisamos mais carregar arquivos JSON aqui!
 
     # 1. O GRUPO BASE: !estoque
-    # Se o usuário digitar apenas !estoque, este bloco é executado e lista os itens.
     @commands.group(name="estoque", invoke_without_command=True)
     async def estoque(self, ctx):
-        produtos = self.carregar_estoque()
+        # Pegamos uma conexão do Pool
+        async with self.bot.db.acquire() as con:
+            # fetch() retorna uma lista com todas as linhas encontradas
+            # Filtramos apenas os ativos e ordenamos por nome
+            produtos = await con.fetch(
+                "SELECT nome, preco_venda, quantidade_estoque FROM produtos WHERE ativo = true ORDER BY nome ASC"
+            )
 
         if not produtos:
             await ctx.send("O estoque da loja está vazio no momento.")
             return
 
         mensagem = "**📦 Produtos Disponíveis na Loja:**\n\n"
-        for nome, info in produtos.items():
-            mensagem += f"**{nome}** | Preço: `{info['preco']}` moedas | Quantidade: `{info['quantidade']}`\n"
+        # O asyncpg retorna registros que funcionam como dicionários
+        for p in produtos:
+            # Formatamos o preço para ter 2 casas decimais (ex: 15.00)
+            mensagem += f"**{p['nome']}** | Preço: `{p['preco_venda']:.2f}` moedas | Quantidade: `{p['quantidade_estoque']}`\n"
 
         await ctx.send(mensagem)
 
+
     # 2. O SUBCOMANDO: !estoque criar <nome> <preco> <quantidade>
-    # Usamos @estoque.command para vincular ao grupo acima
     @estoque.command(name="criar")
-    @commands.has_permissions(administrator=True)  # Apenas admins podem criar produtos
-    async def criar(self, ctx, nome: str, preco: int, quantidade: int = 1):
-        produtos = self.carregar_estoque()
-
-        # Deixa o nome padronizado (ex: "espada" vira "Espada")
+    @commands.has_permissions(administrator=True)
+    # Mudei o preco para float, já que no banco é NUMERIC (aceita centavos)
+    async def criar(self, ctx, nome: str, preco: float, quantidade: int = 1):
         nome = nome.capitalize()
+        # A tabela exige um SKU único. Vamos gerar um automático (Ex: "Poção de Vida" vira "POÇÃO_DE_VIDA")
+        sku = nome.upper().replace(" ", "_")
 
-        if nome in produtos:
-            # Se o produto já existe, apenas soma a quantidade e atualiza o preço
-            produtos[nome]["quantidade"] += quantidade
-            produtos[nome]["preco"] = preco
-            self.salvar_estoque(produtos)
-            await ctx.send(
-                f"O produto **{nome}** já existia. Estoque atualizado para {produtos[nome]['quantidade']} unidades!"
+        async with self.bot.db.acquire() as con:
+            # fetchrow() busca apenas 1 registro. Ideal para checar se o produto já existe.
+            produto_existente = await con.fetchrow(
+                "SELECT quantidade_estoque FROM produtos WHERE sku = $1", 
+                sku
             )
-        else:
-            # Se não existe, cria do zero
-            produtos[nome] = {"preco": preco, "quantidade": quantidade}
-            self.salvar_estoque(produtos)
-            await ctx.send(
-                f"Produto **{nome}** criado com sucesso!\nPreço: `{preco}` moedas | Quantidade inicial: `{quantidade}`"
-            )
+
+            if produto_existente:
+                # UPDATE: Soma a quantidade atual com a nova e atualiza o preço
+                nova_quantidade = produto_existente['quantidade_estoque'] + quantidade
+                
+                await con.execute(
+                    "UPDATE produtos SET quantidade_estoque = $1, preco_venda = $2 WHERE sku = $3",
+                    nova_quantidade, preco, sku
+                )
+                
+                await ctx.send(f"O produto **{nome}** já existia. Estoque atualizado para {nova_quantidade} unidades e preço alterado para `{preco:.2f}`!")
+            
+            else:
+                # INSERT: Cria o produto do zero
+                await con.execute(
+                    "INSERT INTO produtos (sku, nome, preco_venda, quantidade_estoque) VALUES ($1, $2, $3, $4)",
+                    sku, nome, preco, quantidade
+                )
+                
+                await ctx.send(f"Produto **{nome}** criado com sucesso!\nPreço: `{preco:.2f}` moedas | Quantidade inicial: `{quantidade}`")
 
 
 async def setup(bot):

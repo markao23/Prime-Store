@@ -3,7 +3,7 @@ from discord.ext import commands
 import os
 import datetime
 
-ARQUIVO_PRODUTOS = "produtos.json"
+ARQUIVO_PRODUTOS = "database/produtos.json"
 
 class Backup(commands.Cog):
     def __init__(self, bot):
