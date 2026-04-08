@@ -1,0 +1,11 @@
+{
+  "Desconto_global": 0,
+  "brinde": {
+    "produto": "",
+    "valor_minimo": 0
+  },
+  "fidelidade": {
+    "pontos_por_real": 0
+  },
+  "ranking": {}
+}
