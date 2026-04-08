@@ -7,7 +7,7 @@ import os
 class Estoque(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.arquivo_estoque = "database/estoque.json"
+        self.arquivo_estoque = "database/produtos.json"
 
     def carregar_estoque(self):
         # Cria a pasta e o arquivo JSON de estoque se não existirem

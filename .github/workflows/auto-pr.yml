@@ -10,29 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     steps:
       - name: Baixar o código
         uses: actions/checkout@v4
 
-      - name: Instalar GitHub CLI
-        run: sudo apt-get install gh -y
-
       - name: Criar o Pull Request
         env:
-          GH_TOKEN: ${{ secrets.MEU_TOKEN_PR }}
+          GH_TOKEN: ${{ github.token }} # <-- Mudança aqui! Usando o contexto 'github.token'
         run: |
-          PR_EXISTE=$(gh pr list --head ${{ github.ref_name }} --state open --json number --jq 'length')
+          BRANCH_ATUAL="${{ github.ref_name }}"
+          
+          echo "Verificando PR para a branch: $BRANCH_ATUAL"
 
-          if [ "$PR_EXISTE" -eq "0" ]; then
+          PR_EXISTE=$(gh pr list --head "$BRANCH_ATUAL" --state open --json number --jq 'length')
+
+          if [ "$PR_EXISTE" -eq 0 ]; then
             echo "Nenhum PR encontrado. Criando um novo..."
             gh pr create \
               --base main \
-              --head ${{ github.ref_name }} \
+              --head "$BRANCH_ATUAL" \
               --title "Automático: Novo código de ${{ github.actor }}" \
-              --body "PR criado automaticamente após push."
+              --body "PR criado automaticamente após push na branch $BRANCH_ATUAL."
           else
-            echo "Já existe um PR aberto para esta branch."
+            echo "Já existe um PR aberto para esta branch. Nada a fazer."
           fi
