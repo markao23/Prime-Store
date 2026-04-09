@@ -47,7 +47,7 @@ class Sistema(commands.Cog):
             color=discord.Color.gold()
         )
 
-        await ctx.send(embed=embed, view=CupomView())
+        await ctx.send(embed=embed, view=CupomView(self.bot))
 
     # CRIAR CUPOM
     @cupom.command(name="criar")
