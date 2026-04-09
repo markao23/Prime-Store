@@ -40,7 +40,7 @@ class HelpCog(commands.Cog, name="⚙️ Ajuda"):
             for cmd in visible_commands:
                 # Se o comando não tiver o parâmetro 'description', ele usa um texto padrão
                 desc = cmd.description or "Sem descrição configurada."
-                command_list += f"`!{cmd.name}` - {desc}\n"
+                command_list += f"`ps!{cmd.name}` - {desc}\n"
 
             # Adiciona a Categoria e a lista de comandos no Embed
             embed.add_field(name=f"**{cog_name}**", value=command_list, inline=False)
