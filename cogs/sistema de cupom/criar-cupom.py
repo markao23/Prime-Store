@@ -14,7 +14,7 @@ class CupomView(discord.ui.View):
 
     @discord.ui.button(label="Listar Cupons", style=discord.ButtonStyle.blurple)
     async def listar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        async with db.pool.acquire() as conn:
+        async with self.bot.pool.acquire() as conn:
             rows = await conn.fetch("SELECT * FROM cupons")
 
             if not rows:
@@ -79,7 +79,7 @@ class Sistema(commands.Cog):
     # LISTAR VIA COMANDO
     @cupom.command(name="listar")
     async def cupom_listar(self, ctx):
-        async with db.pool.acquire() as conn:
+        async with self.bot.pool.acquire() as conn:
             rows = await conn.fetch("SELECT * FROM cupons")
 
             if not rows:
