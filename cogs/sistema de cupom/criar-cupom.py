@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from database import db
 
 class CupomView(discord.ui.View):
     def __init__(self):
@@ -22,8 +21,14 @@ class CupomView(discord.ui.View):
                 await interaction.response.send_message("❌ Nenhum cupom", ephemeral=True)
                 return
 
-            texto = "\n".join([f"🎟️ {r['codigo']} - {r['desconto']}%" for r in rows])
+            texto = ""
+            for r in rows:
+                if r['tipo_desconto'] == 'porcentagem':
+                    valor_texto = f"{r['valor_desconto']}%"
+                else:
+                    valor_texto = f"R$ {r['valor_desconto']}"
 
+                texto += f"🎟️ **{r['codigo']}** - {valor_texto} (Usos: {r['usos_atuais']}/{r['usos_maximos']})\n"
             await interaction.response.send_message(
                 f"📜 Cupons:\n{texto}",
                 ephemeral=True
@@ -46,15 +51,29 @@ class Sistema(commands.Cog):
 
     # CRIAR CUPOM
     @cupom.command(name="criar")
-    async def cupom_criar(self, ctx, codigo: str, desconto: int, usos: int):
-        async with db.pool.acquire() as conn:
+    async def cupom_criar(self, ctx, codigo: str, tipo: str, valor: float, usos: int):
+        tipo = tipo.lower()
+
+        if tipo not in ['porcentagem', 'fixo']:
+            await ctx.send("❌ O tipo de desconto precisa ser `porcentagem` ou `fixo`.")
+            return
+
+        async with self.bot.pool.acquire() as conn:
             try:
                 await conn.execute(
-                    "INSERT INTO cupons (codigo, desconto, usos) VALUES ($1, $2, $3)",
-                    codigo, desconto, usos
+                    """
+                        INSERT INTO cupons
+                        (codigo, tipo_desconto, valor_desconto, usos_maximos)
+                        VALUES ($1, $2, $3, $4)
+                    """,
+                    codigo.upper(),
+                    tipo,
+                    valor,
+                    usos,
                 )
-                await ctx.send(f"✅ Cupom `{codigo}` criado!")
-            except:
+                await ctx.send(f"✅ Cupom `{codigo.upper()}` criado!")
+            except Exception as e:
+                print(f"Erro SQL: {e}")
                 await ctx.send("❌ Esse cupom já existe!")
 
     # LISTAR VIA COMANDO
@@ -67,7 +86,13 @@ class Sistema(commands.Cog):
                 await ctx.send("❌ Nenhum cupom")
                 return
 
-            texto = "\n".join([f"{r['codigo']} - {r['desconto']}%" for r in rows])
+            for r in rows:
+                if r['tipo_desconto'] == 'porcentagem':
+                    valor_texto = f"{r['valor_desconto']}%"
+                else:
+                    valor_texto = f"R$ {r['valor_desconto']}"
+
+                texto += f"🎟️ **{r['codigo']}** - {valor_texto} (Usos: {r['usos_atuais']}/{r['usos_maximos']})\n"
             await ctx.send(f"📜 Cupons:\n{texto}")
 
 # setup obrigatório
